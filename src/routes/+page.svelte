@@ -80,11 +80,13 @@ builtins.set('!', math.factorial);
 builtins.set('floor', math.floor);
 builtins.set('ceil', math.ceil);
 
+let defaultExpression = '(+ 1 (npr 5 2))';
+
 let scmStore = writable({
     builtins: builtins,
-    expression: '',
-    formattedExpression: '',
-    result: 0,
+    expression: defaultExpression,
+    formattedExpression: scmIndent(defaultExpression),
+    result: scmEval(builtins, defaultExpression)[0],
     message: null,
 });
 
