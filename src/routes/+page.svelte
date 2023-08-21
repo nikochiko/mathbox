@@ -108,17 +108,22 @@ function scmIndent(expression) {
     expression = expression.replace(/\s+/g, ' ');
     expression = expression.replace(/\s?\(\s?/g, ' (');
     expression = expression.replace(/\s?\)\s?/g, ') ');
+    const tokens = expression.split(' ');
 
     // at every subsequent '(token ', add a newline and indent
     let indent = 0;
     let result = '';
-    for (let token of expression.split(' ')) {
+    for (const [i, token] of tokens.entries()) {
+        const nextToken = i + 1 < tokens.length ? tokens[i + 1] : null;
         if (token[0] === '(') {
             result += '\n' + ' '.repeat(indent * 2) + token + ' ';
             indent++;
         } else if (token[token.length - 1] === ')') {
             indent--;
             result += token;
+            if (nextToken && nextToken[0] !== ')') {
+                result += '\n' + ' '.repeat(indent * 2);
+            }
         } else {
             result += token + ' ';
         }
