@@ -79,6 +79,11 @@ builtins.set('^', math.pow);
 builtins.set('!', math.factorial);
 builtins.set('floor', math.floor);
 builtins.set('ceil', math.ceil);
+builtins.set('sin', math.sin);
+builtins.set('cos', math.cos);
+builtins.set('tan', math.tan);
+builtins.set('fromDegrees', math.fromDegrees);
+builtins.set('sqrt', math.sqrt);
 
 let defaultExpression = '(+ 1 (npr 5 2))';
 

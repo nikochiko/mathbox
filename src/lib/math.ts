@@ -63,6 +63,26 @@ export function pow(a: number, b: number): number {
     return Math.pow(a, b);
 }
 
+export function sin(a: number): number {
+    return Math.sin(a);
+}
+
+export function cos(a: number): number {
+    return Math.cos(a);
+}
+
+export function tan(a: number): number {
+    return Math.tan(a);
+}
+
+export function fromDegrees(a: number): number {
+    return a * Math.PI / 180;
+}
+
+export function sqrt(a: number): number {
+    return Math.sqrt(a);
+}
+
 // to check that a *number* is an integer (and not float)
 function isInteger(n: number): boolean {
     return n % 1 === 0;
