@@ -105,6 +105,24 @@ export function sampleStd(...args: number[]): number {
     return sqrt(sampleVariance(...args));
 }
 
+export function min(...args: number[]): number {
+    return Math.min(...args);
+}
+
+export function max(...args: number[]): number {
+    return Math.max(...args);
+}
+
+export function percentile(p: number, ...args: number[]): number {
+    if (p < 0 || p > 100) {
+        throw new Error("p must be between 0 and 100");
+    }
+
+    const sorted = args.sort((a, b) => a - b);
+    const index = ceil(sorted.length * p / 100) - 1;  // -1 for 0-indexing
+    return sorted[index];
+}
+
 // to check that a *number* is an integer (and not float)
 function isInteger(n: number): boolean {
     return n % 1 === 0;

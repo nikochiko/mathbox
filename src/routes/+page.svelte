@@ -89,6 +89,9 @@ builtins.set('variance', math.variance);
 builtins.set('std', math.std);
 builtins.set('sampleVariance', math.sampleVariance);
 builtins.set('sampleStd', math.sampleStd);
+builtins.set('min', math.min);
+builtins.set('max', math.max);
+builtins.set('percentile', math.percentile);
 
 let defaultExpression = '(+ 1 (npr 5 2))';
 
