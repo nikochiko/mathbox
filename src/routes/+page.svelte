@@ -84,6 +84,11 @@ builtins.set('cos', math.cos);
 builtins.set('tan', math.tan);
 builtins.set('fromDegrees', math.fromDegrees);
 builtins.set('sqrt', math.sqrt);
+builtins.set('mean', math.mean);
+builtins.set('variance', math.variance);
+builtins.set('std', math.std);
+builtins.set('sampleVariance', math.sampleVariance);
+builtins.set('sampleStd', math.sampleStd);
 
 let defaultExpression = '(+ 1 (npr 5 2))';
 

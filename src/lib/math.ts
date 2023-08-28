@@ -83,6 +83,28 @@ export function sqrt(a: number): number {
     return Math.sqrt(a);
 }
 
+export function mean(...args: number[]): number {
+    return add(...args) / args.length;
+}
+
+export function variance(...args: number[]): number {
+    const m = mean(...args);
+    return mean(...args.map(x => pow(x - m, 2)));
+}
+
+export function std(...args: number[]): number {
+    return sqrt(variance(...args));
+}
+
+export function sampleVariance(...args: number[]): number {
+    const m = mean(...args);
+    return add(...args.map(x => pow(x - m, 2))) / (args.length - 1);
+}
+
+export function sampleStd(...args: number[]): number {
+    return sqrt(sampleVariance(...args));
+}
+
 // to check that a *number* is an integer (and not float)
 function isInteger(n: number): boolean {
     return n % 1 === 0;
