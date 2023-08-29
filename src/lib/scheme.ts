@@ -12,11 +12,11 @@ type RParen = ")";
 //     | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "W" | "X" | "Y" | "Z";
 // type Whitespace = " " | "\n" | "\t" | "\r";
 
-const NumberPattern = /[0-9]+(\.[0-9+])?/
+const NumberPattern = /^[0-9]+(\.[0-9]+)?$/
 type NumberToken = number;
 
 // characters allowed in a variable name
-const VarNamePattern = /[a-zA-Z\+\-\!\/\*\_][a-zA-Z0-9\+\-\!\?\*\_\']*/;
+const VarNamePattern = /^[a-zA-Z\+\-\!\/\*\_][a-zA-Z0-9\+\-\!\?\*\_\']*$/;
 type VarName = string;
 
 type Primitive = VarName | NumberToken;
