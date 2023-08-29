@@ -92,6 +92,8 @@ builtins.set('sampleStd', math.sampleStd);
 builtins.set('min', math.min);
 builtins.set('max', math.max);
 builtins.set('percentile', math.percentile);
+builtins.set('e', math.e);
+builtins.set('pi', math.pi);
 
 let defaultExpression = '(+ 1 (npr 5 2))';
 

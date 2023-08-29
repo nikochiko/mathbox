@@ -123,6 +123,9 @@ export function percentile(p: number, ...args: number[]): number {
     return sorted[index];
 }
 
+export const e = Math.E;
+export const pi = Math.PI;
+
 // to check that a *number* is an integer (and not float)
 function isInteger(n: number): boolean {
     return n % 1 === 0;

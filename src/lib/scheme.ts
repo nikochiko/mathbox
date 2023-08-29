@@ -16,6 +16,7 @@ const NumberPattern = /[0-9]+(\.[0-9+])?/
 type NumberToken = number;
 
 // characters allowed in a variable name
+const VarNamePattern = /[a-zA-Z\+\-\!\/\*\_][a-zA-Z0-9\+\-\!\?\*\_\']*/;
 type VarName = string;
 
 type Primitive = VarName | NumberToken;
@@ -77,6 +78,8 @@ function parseExpr(tokens: string[]): [Expr, string[]] {
         } else {
             result = parseInt(token);
         }
+    } else if (token.match(VarNamePattern)) {
+        result = token as VarName;
     } else if (token == "(") {
         const token = tokens.shift();
         if (token === undefined) {
