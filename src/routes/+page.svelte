@@ -69,6 +69,8 @@ factStore.subscribe((value) => {
 });
 
 const builtins = new Map();
+
+// functions
 builtins.set('npr', math.npr);
 builtins.set('ncr', math.ncr);
 builtins.set('+', math.add);
@@ -92,6 +94,8 @@ builtins.set('sampleStd', math.sampleStd);
 builtins.set('min', math.min);
 builtins.set('max', math.max);
 builtins.set('percentile', math.percentile);
+
+// constants
 builtins.set('e', math.e);
 builtins.set('pi', math.pi);
 
