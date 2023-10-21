@@ -1,10 +1,5 @@
 // scheme parser in typescript
 
-// Primitives
-
-type LParen = "(";
-type RParen = ")";
-
 // type Letters
 //     = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "j" | "k" | "l" | "m"
 //     | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "w" | "x" | "y" | "z"
@@ -37,7 +32,10 @@ type Primitive = VarName | NumberToken;
 //     | `${VarChars}${VarChars}${VarChars}${VarChars}${VarChars}${VarChars}${VarChars}${VarChars}`;
 
 // Means of combination
-type Combination = [VarName, ...Expr[]];
+type Combination 
+    = [VarName, ...Expr[]]
+    | ["define", VarName, Expr]
+    | ["begin", ...Expr[]];
 
 type Expr
     = Primitive
@@ -108,14 +106,28 @@ function parseExpr(tokens: string[]): [Expr, string[]] {
     return [result, tokens];
 }
 
+type DataType = BorrowedType | CustomType;
+
+type BorrowedType = number | Function;
+type CustomType = Nil | CustomFunction ;
+
+type Nil = "nil";
+type CustomFunction = { params: VarName[], body: Expr, env: Env };
+
 // Environment
-type Frame = Map<VarName, number | Function>;
-
+type Frame = Map<VarName, DataType>;
 type Env
-    = null
-    | { frame: Frame, parent: Env };
+    = { frame: Frame, parent: Env | null };
 
-function lookup(env: Env, varname: VarName): number | Function {
+function isCustomFunction(data: DataType): data is CustomFunction {
+    return typeof data === "object" && data !== null && "params" in data && "body" in data && "env" in data;
+}
+
+function makeFrame(): Frame {
+    return new Map();
+}
+
+function lookup(env: Env | null, varname: VarName): DataType {
     if (env === null) {
         throw new Error(`undefined variable: ${varname}`);
     }
@@ -128,13 +140,19 @@ function lookup(env: Env, varname: VarName): number | Function {
     }
 }
 
-function _eval(env: Env, expr: Expr): number {
+function _eval(env: Env, expr: Expr): DataType {
     if (isPrimitive(expr)) {
         const value = evalPrimitive(env, expr);
         if (typeof value === "function") {
             throw new Error(`expected number, got function: ${value}`);
         }
         return value;
+    } else if (isDefinition(expr)) {
+        return evalDefinition(env, expr);
+    } else if (isSequence(expr)) {
+        return evalSequence(env, expr);
+    } else if (isLambda(expr)) {
+        return evalLambda(env, expr);
     } else if (isApplication(expr)) {
         return evalApplication(env, expr);
     } else {
@@ -146,11 +164,23 @@ function isPrimitive(expr: Expr): expr is Primitive {
     return typeof expr === "number" || typeof expr === "string";
 }
 
+function isDefinition(expr: Expr): expr is Combination {
+    return Array.isArray(expr) && expr[0] === "define";
+}
+
+function isSequence(expr: Expr): expr is Combination {
+    return Array.isArray(expr) && expr[0] === "begin";
+}
+
+function isLambda(expr: Expr): expr is Combination {
+    return Array.isArray(expr) && expr[0] === "lambda";
+}
+
 function isApplication(expr: Expr): expr is Combination {
     return Array.isArray(expr);
 }
 
-function evalPrimitive(env: Env, expr: Primitive): number | Function {
+function evalPrimitive(env: Env, expr: Primitive): DataType {
     if (typeof expr === "number") {
         return expr;
     } else {
@@ -158,19 +188,76 @@ function evalPrimitive(env: Env, expr: Primitive): number | Function {
     }
 }
 
-function evalApplication(env: Env, expr: Combination): number {
+function evalDefinition(env: Env, expr: Combination): DataType {
+    if (!(expr.length === 3)) {
+        throw new Error(`invalid definition: ${expr}`);
+    }
+
+    const [_, varname, valueExpr] = expr;
+    if (!(VarNamePattern.test(varname as VarName))) {
+        throw new Error(`invalid variable name: ${varname}`);
+    } else {
+        const value = _eval(env, valueExpr);
+        env.frame.set(varname as VarName, value);
+        return value;
+    }
+}
+
+function evalSequence(env: Env, expr: Combination): DataType {
+    const [_, ...exprs] = expr;
+    let result: DataType = "nil";
+    for (const expr of exprs) {
+        result = _eval(env, expr);
+    }
+    return result;
+}
+
+function evalLambda(env: Env, expr: Combination): CustomFunction {
+    if (!(expr.length === 3)) {
+        throw new Error(`invalid lambda: ${expr}`);
+    }
+
+    const [_, params, body] = expr;
+
+    if (!(Array.isArray(params))) {
+        throw new Error(`invalid lambda params: ${expr}`);
+    }
+
+    const paramNames = params as VarName[];
+    for (const paramName of paramNames) {
+        if (!(VarNamePattern.test(paramName))) {
+            throw new Error(`invalid lambda param name: ${paramName}`);
+        }
+    }
+
+    return {
+        params: paramNames as VarName[],
+        body,
+        env,
+    };
+}
+
+function evalApplication(env: Env, expr: Combination): DataType {
     const [operator, ...operands] = expr;
     const operatorValue = lookup(env, operator);
-    if (typeof operatorValue === "function") {
-        const operandValues: number[] = Array.from(operands, operand => _eval(env, operand));
+    if (operatorValue instanceof Function) {
+        const operandValues: DataType[] = Array.from(operands, operand => _eval(env, operand));
         return operatorValue(...operandValues);
+    } else if (isCustomFunction(operatorValue)) {
+        const operandValues: DataType[] = Array.from(operands, operand => _eval(env, operand));
+        const newFrame = makeFrame();
+        for (let i = 0; i < operatorValue.params.length; i++) {
+            newFrame.set(operatorValue.params[i], operandValues[i]);
+        }
+        const newEnv = { frame: newFrame, parent: operatorValue.env };
+        return _eval(newEnv, operatorValue.body);
     } else {
         throw new Error(`expected function, got ${operatorValue}`);
     }
 }
 
-export function evaluate(builtins: Map<string, number | Function>, s: string): [number?, string?] {
-    const frame = new Map();
+export function evaluate(builtins: Map<string, DataType>, s: string): [DataType?, string?] {
+    const frame = makeFrame();
     for (const [name, func] of builtins) {
         frame.set(name as VarName, func);
     }

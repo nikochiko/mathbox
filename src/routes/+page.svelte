@@ -134,7 +134,9 @@ function scmIndent(expression) {
     let result = '';
     for (const [i, token] of tokens.entries()) {
         const nextToken = i + 1 < tokens.length ? tokens[i + 1] : null;
-        if (token[0] === '(') {
+        if (token[0] === '(' && token[token.length - 1] === ')') {
+            result += '\n' + ' '.repeat(indent * 2) + token;
+        } else if (token[0] === '(') {
             result += '\n' + ' '.repeat(indent * 2) + token + ' ';
             indent++;
         } else if (token[token.length - 1] === ')') {
