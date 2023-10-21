@@ -201,7 +201,7 @@ function scmIndent(expression) {
 <h2>4. Scheme</h2>
 <form>
     <label for="expression">Expression = </label>
-    <input type="text" bind:value={$scmStore.expression} />
+    <textarea bind:value={$scmStore.expression} />
 </form>
 <div class="alert" class:show={$scmStore.message}>
     <p>{$scmStore.message}</p>
