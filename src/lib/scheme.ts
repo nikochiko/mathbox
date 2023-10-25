@@ -33,9 +33,10 @@ type Primitive = VarName | NumberToken;
 
 // Means of combination
 type Combination 
-    = [VarName, ...Expr[]]
-    | ["define", VarName, Expr]
-    | ["begin", ...Expr[]];
+    = [...Expr[]] // application
+    | ["define", VarName, Expr] // definition
+    | ["begin", ...Expr[]] // sequence
+    | ["lambda", VarName[], Expr]; // lambda
 
 type Expr
     = Primitive
@@ -49,7 +50,9 @@ function normalizeWhitespace(s: string): string {
 }
 
 function tokenize(s: string): string[] {
-    return normalizeWhitespace(s).trim().split(" ");
+    return normalizeWhitespace(s)
+        .trim()
+        .split(" ");
 }
 
 function parse(s: string): Expr {
@@ -78,14 +81,13 @@ function parseExpr(tokens: string[]): [Expr, string[]] {
         }
     } else if (token.match(VarNamePattern)) {
         result = token as VarName;
-    } else if (token == "(") {
+    } else if (token === "(") {
         const token = tokens.shift();
         if (token === undefined) {
-            throw new Error("unexpected end of input. expected varname for application");
+            throw new Error("unexpected end of input");
         }
 
-        const operator: VarName = token;
-        const operands: Expr[] = [];
+        const result: Expr[] = [];
         while (tokens.length > 0) {
             const token = tokens[0];
             if (token === ")") {
@@ -93,12 +95,10 @@ function parseExpr(tokens: string[]): [Expr, string[]] {
                 break;
             } else {
                 const [expr, rest] = parseExpr(tokens);
-                operands.push(expr);
+                result.push(expr);
                 tokens = rest;
             }
         }
-
-        result = [operator, ...operands];
     } else {
         throw new Error(`unexpected token: ${token}`);
     }
@@ -143,9 +143,9 @@ function lookup(env: Env | null, varname: VarName): DataType {
 function _eval(env: Env, expr: Expr): DataType {
     if (isPrimitive(expr)) {
         const value = evalPrimitive(env, expr);
-        if (typeof value === "function") {
-            throw new Error(`expected number, got function: ${value}`);
-        }
+        // if (typeof value === "function") {
+        //     throw new Error(`expected number, got function: ${value}`);
+        // }
         return value;
     } else if (isDefinition(expr)) {
         return evalDefinition(env, expr);
@@ -239,7 +239,7 @@ function evalLambda(env: Env, expr: Combination): CustomFunction {
 
 function evalApplication(env: Env, expr: Combination): DataType {
     const [operator, ...operands] = expr;
-    const operatorValue = lookup(env, operator);
+    const operatorValue = _eval(env, operator);
     if (operatorValue instanceof Function) {
         const operandValues: DataType[] = Array.from(operands, operand => _eval(env, operand));
         return operatorValue(...operandValues);
